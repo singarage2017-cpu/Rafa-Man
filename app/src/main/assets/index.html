@@ -37,35 +37,35 @@
   .scanlines, .crt-overlay { top: 10px; left: 10px; width: calc(100% - 20px); height: calc(100% - 20px); }
 
   .joystick-panel {
-    width: 176px; height: 128px; margin-top: 8px; position: relative;
-    display: flex; align-items: flex-end; justify-content: center;
+    width: 142px; height: 142px; margin-top: 6px; position: relative;
+    display: flex; align-items: center; justify-content: center;
     touch-action: none;
   }
   .joystick-base {
-    position: absolute; bottom: 2px; width: 126px; height: 70px;
+    position: absolute; width: 118px; height: 118px;
     border-radius: 50%;
-    background: radial-gradient(ellipse at 45% 35%, #454545 0%, #181818 40%, #050505 72%);
-    border: 3px solid #4b4b4b;
-    box-shadow: 0 8px 0 #000, 0 0 14px rgba(255,176,0,.38), inset 0 3px 8px rgba(255,255,255,.13);
+    background: repeating-radial-gradient(circle, transparent 0 15px, rgba(255,176,0,.11) 16px 17px), radial-gradient(circle, #17130a 0%, #080704 67%, #000 100%);
+    border: 3px solid #ffb000;
+    box-shadow: 0 0 13px rgba(255,176,0,.65), inset 0 0 18px rgba(255,176,0,.16);
   }
+  .joystick-base::before, .joystick-base::after { content: ''; position: absolute; background: rgba(255,176,0,.35); }
+  .joystick-base::before { width: 2px; height: 88px; left: 58px; top: 15px; }
+  .joystick-base::after { width: 88px; height: 2px; left: 15px; top: 58px; }
   .joystick-stick {
-    position: absolute; left: 50%; bottom: 34px; width: 18px; height: 65px;
-    margin-left: -9px; border-radius: 10px;
-    background: linear-gradient(90deg, #4f3c21, #d2b277 48%, #60451e);
-    box-shadow: 3px 3px 5px #000;
-    transform-origin: 50% 90%;
-    transition: transform 70ms ease-out;
+    position: absolute; left: 50%; top: 50%; width: 58px; height: 58px;
+    margin: -29px 0 0 -29px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ffe8a0 0%, #ffb000 30%, #b96c00 72%, #643300 100%);
+    border: 3px solid #ffd66b;
+    box-shadow: inset 6px 6px 9px rgba(255,255,255,.28), inset -6px -7px 10px rgba(0,0,0,.38), 0 0 13px #ffb000, 0 7px 10px #000;
+    transition: transform 45ms linear;
     pointer-events: none;
   }
   .joystick-knob {
-    position: absolute; left: 50%; top: -31px; width: 64px; height: 64px;
-    margin-left: -32px; border-radius: 50%;
-    background: radial-gradient(circle at 32% 24%, #ff7777 0%, #e22525 28%, #a80000 72%, #650000 100%);
-    border: 2px solid #5e0000;
-    box-shadow: inset 7px 7px 12px rgba(255,255,255,.25), inset -7px -8px 12px rgba(0,0,0,.32), 0 7px 9px rgba(0,0,0,.7);
+    position: absolute; inset: 10px; border-radius: 50%;
+    border: 2px dashed rgba(60,30,0,.5);
   }
-  .joystick-panel.active .joystick-base { box-shadow: 0 8px 0 #000, 0 0 20px rgba(255,176,0,.7), inset 0 3px 8px rgba(255,255,255,.13); }
-  .joystick-label { position: absolute; bottom: -20px; font-size: 10px; letter-spacing: 2px; color: #ffb000; opacity: .75; }
+  .joystick-panel.active .joystick-base { box-shadow: 0 0 22px rgba(255,176,0,.9), inset 0 0 22px rgba(255,176,0,.22); }
+  .joystick-label { position: absolute; bottom: -7px; font-size: 9px; letter-spacing: 2px; color: #ffb000; opacity: .8; }
 
   @media (max-height: 760px) {
     h1 { font-size: 20px; margin: 4px 0; }
@@ -769,21 +769,22 @@
     if (joystickPointer !== e.pointerId) return;
     const rect = joystick.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height * .66;
+    const cy = rect.top + rect.height / 2;
     const dx = e.clientX - cx;
     const dy = e.clientY - cy;
     const distance = Math.hypot(dx, dy);
-    if (distance < 8) {
-      joystickStick.style.transform = 'rotate(0deg)';
+    if (distance < 4) {
+      joystickStick.style.transform = 'translate(0, 0)';
       return;
     }
 
     const direction = Math.abs(dx) > Math.abs(dy)
       ? (dx > 0 ? 'right' : 'left')
       : (dy > 0 ? 'down' : 'up');
-    const angle = Math.atan2(dx, -dy) * 180 / Math.PI;
-    const tilt = Math.min(distance / 52, 1) * 17;
-    joystickStick.style.transform = `rotate(${angle}deg) translateY(${-tilt * .34}px)`;
+    const travel = Math.min(distance, 23);
+    const tx = dx / distance * travel;
+    const ty = dy / distance * travel;
+    joystickStick.style.transform = `translate(${tx}px, ${ty}px)`;
     setDirection(direction);
     if (direction !== lastJoystickDirection && navigator.vibrate) navigator.vibrate(14);
     lastJoystickDirection = direction;
@@ -794,7 +795,7 @@
     joystickPointer = null;
     lastJoystickDirection = '';
     joystick.classList.remove('active');
-    joystickStick.style.transform = 'rotate(0deg)';
+    joystickStick.style.transform = 'translate(0, 0)';
     if (gameState === 'playing') {
       player.dx = 0; player.dy = 0;
       player.nextDx = 0; player.nextDy = 0;
